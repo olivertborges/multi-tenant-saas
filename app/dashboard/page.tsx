@@ -34,8 +34,7 @@ export default function DashboardPage() {
         <nav className="space-y-2">
           <Link href="/dashboard" className="block p-2 rounded text-gray-700 hover:bg-gray-100">📊 Dashboard</Link>
           <Link href="/users" className="block p-2 rounded text-gray-700 hover:bg-gray-100">👥 Usuarios</Link>
-          <div className="block p-2 rounded text-gray-400">🏢 Empresa</div>
-          <div className="block p-2 rounded text-gray-400">💰 Facturación</div>
+          <Link href="/admin" className="block p-2 rounded bg-indigo-50 text-indigo-700 font-medium">👑 Panel Admin</Link>
         </nav>
         <button onClick={handleLogout} className="mt-8 w-full bg-red-500 text-white p-2 rounded hover:bg-red-600">
           🚪 Cerrar Sesión
@@ -70,7 +69,9 @@ export default function DashboardPage() {
           <div className="bg-white rounded-lg p-6 text-center">
             <h3 className="text-lg font-semibold mb-2">✅ Sistema Multi-Tenant con Roles y Permisos</h3>
             <p>Gestiona usuarios desde el menú "Usuarios".</p>
-            <p className="text-xs text-gray-400 mt-3">Tenant ID: {user.tenantId}</p>
+            <Link href="/admin" className="inline-block mt-4 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+              👑 Ir al Panel de Administración
+            </Link>
           </div>
         </div>
       </div>
