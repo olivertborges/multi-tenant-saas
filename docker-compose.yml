@@ -1,12 +1,11 @@
-version: '3.8'
-
 services:
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
+    container_name: saas-postgres
     environment:
       POSTGRES_DB: saas_db
-      POSTGRES_USER: saas_user
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
@@ -14,8 +13,12 @@ services:
 
   redis:
     image: redis:7-alpine
+    container_name: saas-redis
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
 
 volumes:
   postgres_data:
+  redis_data:
