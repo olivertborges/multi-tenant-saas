@@ -39,48 +39,69 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600">
-      <div className="bg-white rounded-2xl p-8 w-full max-w-md mx-4">
-        <h1 className="text-2xl font-bold text-center text-gray-800 mb-8">Iniciar Sesión</h1>
-        {error && <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-center">{error}</div>}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4">
+      <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            SaaS Enterprise
+          </h1>
+          <p className="text-gray-500 text-sm sm:text-base mt-2">Inicia sesión en tu cuenta</p>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="Empresa (ej: miempresa)"
-            className="w-full p-3 mb-3 border border-gray-300 rounded-lg"
-            value={tenantSlug}
-            onChange={(e) => setTenantSlug(e.target.value)}
-            required
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full p-3 mb-3 border border-gray-300 rounded-lg"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Contraseña"
-            className="w-full p-3 mb-4 border border-gray-300 rounded-lg"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Empresa (ej: miempresa)"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
+              value={tenantSlug}
+              onChange={(e) => setTenantSlug(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="mb-4">
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="mb-6">
+            <input
+              type="password"
+              placeholder="Contraseña"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
           <button
             type="submit"
-            className="w-full bg-indigo-500 text-white p-3 rounded-lg font-semibold hover:bg-indigo-600 transition"
             disabled={loading}
+            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 text-base"
           >
             {loading ? 'Cargando...' : 'Ingresar'}
           </button>
         </form>
-        <p className="text-center text-gray-600 mt-4">
-          ¿No tienes cuenta? <Link href="/register" className="text-indigo-500">Regístrate</Link>
-        </p>
-        <p className="text-center text-gray-400 text-xs mt-3">
-          Demo: empresa "miempresa" | admin@miempresa.com | 123456
+
+        <p className="text-center text-gray-600 mt-6 text-sm">
+          ¿No tienes cuenta?{' '}
+          <Link href="/register" className="text-indigo-600 hover:text-indigo-700 font-medium">
+            Regístrate
+          </Link>
         </p>
       </div>
     </div>
