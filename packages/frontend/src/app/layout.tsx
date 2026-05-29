@@ -1,14 +1,13 @@
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <html lang="es">
-      <body>
-        <h1>SaaS Multi-Tenant Platform</h1>
+      <body style={{ margin: 0, padding: 0 }}>
         {children}
       </body>
     </html>
-  );
+  )
 }
