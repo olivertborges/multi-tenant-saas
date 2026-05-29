@@ -50,6 +50,12 @@ export default function DashboardPage() {
           
           <div className="flex-1 space-y-2">
             <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition">📊 Dashboard</Link>
+            <Link href="/services" className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition">🛠️ Servicios</Link>
+            <Link href="/agendas" className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition">📅 Agendas</Link>
+            <Link href="/products" className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition">🛍️ Productos</Link>
+            <Link href="/cart" className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition">🛒 Carrito</Link>
+            <Link href="/purchases" className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition">📦 Mis Compras</Link>
+            <Link href="/points" className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition">⭐ Mis Puntos</Link>
             <Link href="/users" className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition">👥 Usuarios</Link>
             <Link href="/admin" className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition">👑 Panel Admin</Link>
             <Link href="/profile" className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition">👤 Mi Perfil</Link>
