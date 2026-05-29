@@ -5,7 +5,9 @@
   "workspaces": ["packages/*"],
   "scripts": {
     "dev": "concurrently \"yarn workspace backend dev\" \"yarn workspace frontend dev\"",
-    "build": "yarn workspace backend build && yarn workspace frontend build"
+    "build": "yarn workspace backend build && yarn workspace frontend build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
