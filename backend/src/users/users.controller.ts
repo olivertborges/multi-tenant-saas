@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Headers, Req } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Headers, Req, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -8,6 +8,18 @@ export class UsersController {
   @Get()
   async findAll(@Headers('x-tenant-id') tenantId: string) {
     return this.usersService.findAll(tenantId);
+  }
+
+  @Get('profile')
+  async getProfile(@Req() req: any) {
+    const userId = req.user?.userId;
+    return this.usersService.findOne(userId, req.user?.tenantId);
+  }
+
+  @Put('profile')
+  async updateProfile(@Req() req: any, @Body() body: any) {
+    const userId = req.user?.userId;
+    return this.usersService.update(userId, body, req.user?.tenantId);
   }
 
   @Get('roles')
