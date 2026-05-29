@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null)
@@ -22,108 +23,57 @@ export default function DashboardPage() {
     router.push('/login')
   }
 
-  if (!user) return <div>Cargando...</div>
+  if (!user) return <div className="flex items-center justify-center h-screen">Cargando...</div>
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <div>
-          <h1 style={styles.title}>Dashboard</h1>
-          <p style={styles.subtitle}>
-            {user.tenantName || user.tenantSlug} | Bienvenido, {user.name}
-          </p>
-        </div>
-        <button onClick={handleLogout} style={styles.logoutButton}>
-          Cerrar Sesión
+    <div className="flex min-h-screen">
+      <div className="w-64 bg-white border-r p-5">
+        <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent mb-8">
+          SaaS Enterprise
+        </h1>
+        <nav className="space-y-2">
+          <Link href="/dashboard" className="block p-2 rounded text-gray-700 hover:bg-gray-100">📊 Dashboard</Link>
+          <Link href="/users" className="block p-2 rounded text-gray-700 hover:bg-gray-100">👥 Usuarios</Link>
+          <div className="block p-2 rounded text-gray-400">🏢 Empresa</div>
+          <div className="block p-2 rounded text-gray-400">💰 Facturación</div>
+        </nav>
+        <button onClick={handleLogout} className="mt-8 w-full bg-red-500 text-white p-2 rounded hover:bg-red-600">
+          🚪 Cerrar Sesión
         </button>
       </div>
-      
-      <div style={styles.grid}>
-        <div style={styles.card}>
-          <div style={styles.cardIcon}>🏢</div>
-          <div>
-            <div style={styles.cardValue}>{user.tenantName || user.tenantSlug}</div>
-            <div style={styles.cardLabel}>Empresa</div>
-          </div>
-        </div>
-        <div style={styles.card}>
-          <div style={styles.cardIcon}>👤</div>
-          <div>
-            <div style={styles.cardValue}>{user.name}</div>
-            <div style={styles.cardLabel}>Usuario</div>
-          </div>
-        </div>
-        <div style={styles.card}>
-          <div style={styles.cardIcon}>📧</div>
-          <div>
-            <div style={styles.cardValue}>{user.email}</div>
-            <div style={styles.cardLabel}>Email</div>
-          </div>
-        </div>
-        <div style={styles.card}>
-          <div style={styles.cardIcon}>👑</div>
-          <div>
-            <div style={styles.cardValue}>{user.role}</div>
-            <div style={styles.cardLabel}>Rol</div>
-          </div>
-        </div>
-      </div>
 
-      <div style={styles.infoCard}>
-        <h3>✅ Sistema Multi-Tenant Funcionando</h3>
-        <p>Cada empresa tiene sus propios usuarios y datos aislados.</p>
-        <p style={{ fontSize: '12px', marginTop: '10px', color: '#999' }}>
-          Tenant ID: {user.tenantId}
-        </p>
+      <div className="flex-1 bg-gray-100">
+        <div className="bg-white p-6 border-b">
+          <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
+          <p className="text-gray-600 mt-1">{user.tenantName || user.tenantSlug} | {user.name} ({user.role})</p>
+        </div>
+
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="bg-white rounded-lg p-6 shadow-sm">
+              <div className="text-4xl mb-2">🏢</div>
+              <div className="text-xl font-bold">{user.tenantName || user.tenantSlug}</div>
+              <div className="text-gray-500 text-sm">Empresa</div>
+            </div>
+            <div className="bg-white rounded-lg p-6 shadow-sm">
+              <div className="text-4xl mb-2">👤</div>
+              <div className="text-xl font-bold">{user.name}</div>
+              <div className="text-gray-500 text-sm">Usuario</div>
+            </div>
+            <div className="bg-white rounded-lg p-6 shadow-sm">
+              <div className="text-4xl mb-2">👑</div>
+              <div className="text-xl font-bold">{user.role}</div>
+              <div className="text-gray-500 text-sm">Rol</div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg p-6 text-center">
+            <h3 className="text-lg font-semibold mb-2">✅ Sistema Multi-Tenant con Roles y Permisos</h3>
+            <p>Gestiona usuarios desde el menú "Usuarios".</p>
+            <p className="text-xs text-gray-400 mt-3">Tenant ID: {user.tenantId}</p>
+          </div>
+        </div>
       </div>
     </div>
   )
-}
-
-const styles = {
-  container: { minHeight: '100vh', background: '#f3f4f6' },
-  header: {
-    background: 'white',
-    padding: '20px 30px',
-    borderBottom: '1px solid #e5e7eb',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  title: { margin: 0, fontSize: '24px', color: '#1f2937' },
-  subtitle: { margin: '5px 0 0', color: '#6b7280' },
-  logoutButton: {
-    background: '#ef4444',
-    color: 'white',
-    border: 'none',
-    padding: '8px 16px',
-    borderRadius: '8px',
-    cursor: 'pointer',
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '20px',
-    padding: '30px',
-  },
-  card: {
-    background: 'white',
-    borderRadius: '12px',
-    padding: '20px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '15px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-  },
-  cardIcon: { fontSize: '40px' },
-  cardValue: { fontSize: '18px', fontWeight: 'bold', color: '#1f2937' },
-  cardLabel: { fontSize: '14px', color: '#6b7280' },
-  infoCard: {
-    background: 'white',
-    borderRadius: '12px',
-    margin: '0 30px 30px',
-    padding: '20px',
-    textAlign: 'center' as const,
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-  },
 }

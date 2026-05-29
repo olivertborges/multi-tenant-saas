@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Empresa / Tenant
 model Tenant {
   id        String   @id @default(uuid())
   slug      String   @unique
@@ -17,21 +16,40 @@ model Tenant {
   updatedAt DateTime @updatedAt
 
   users User[]
+  roles Role[]
 }
 
-// Usuario (ahora con tenantId)
+model Role {
+  id          String   @id @default(uuid())
+  name        String   // ADMIN, MANAGER, EMPLOYEE, VIEWER
+  description String?
+  permissions Json     @default("[]") // ["users:read", "users:write", "billing:read", ...]
+  tenantId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant   @relation(fields: [tenantId], references: [id])
+  users  User[]
+
+  @@unique([name, tenantId])
+  @@index([tenantId])
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String
   name      String
   password  String
-  role      String   @default("EMPLOYEE")
+  roleId    String
   tenantId  String
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
+  role   Role   @relation(fields: [roleId], references: [id])
 
   @@unique([email, tenantId])
   @@index([tenantId])
+  @@index([roleId])
 }

@@ -8,7 +8,6 @@ const prisma = new PrismaClient();
 @Injectable()
 export class AuthService {
   async register(email: string, password: string, name: string, tenantSlug: string, tenantName?: string) {
-    // Buscar o crear el tenant
     let tenant = await prisma.tenant.findUnique({
       where: { slug: tenantSlug }
     });
@@ -20,9 +19,25 @@ export class AuthService {
           name: tenantName || tenantSlug,
         }
       });
+
+      const roles = [
+        { name: 'ADMIN', permissions: ['*'] },
+        { name: 'MANAGER', permissions: ['users:read', 'users:write', 'reports:read', 'dashboard:read'] },
+        { name: 'EMPLOYEE', permissions: ['dashboard:read', 'tasks:read', 'tasks:write'] },
+        { name: 'VIEWER', permissions: ['dashboard:read'] },
+      ];
+
+      for (const role of roles) {
+        await prisma.role.create({
+          data: {
+            name: role.name,
+            permissions: role.permissions,
+            tenantId: tenant.id,
+          },
+        });
+      }
     }
 
-    // Verificar si el usuario ya existe en este tenant
     const existingUser = await prisma.user.findUnique({
       where: {
         email_tenantId: {
@@ -36,23 +51,32 @@ export class AuthService {
       throw new BadRequestException('El usuario ya existe en esta empresa');
     }
 
-    // Crear el usuario
+    const adminRole = await prisma.role.findFirst({
+      where: { tenantId: tenant.id, name: 'ADMIN' }
+    });
+
     const hashedPassword = await argon2.hash(password);
-    const role = 'ADMIN'; // El primer usuario es ADMIN
 
     const user = await prisma.user.create({
       data: {
         email,
         name,
         password: hashedPassword,
-        role,
+        roleId: adminRole!.id,
         tenantId: tenant.id,
-      }
+      },
+      include: { role: true }
     });
 
-    // Generar token incluyendo tenant
     const token = jwt.sign(
-      { userId: user.id, email: user.email, tenantId: tenant.id, tenantSlug: tenant.slug },
+      { 
+        userId: user.id, 
+        email: user.email, 
+        tenantId: tenant.id, 
+        tenantSlug: tenant.slug,
+        role: user.role.name,
+        permissions: user.role.permissions
+      },
       'secret-key',
       { expiresIn: '7d' }
     );
@@ -62,7 +86,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: user.role.name,
         tenantId: tenant.id,
         tenantSlug: tenant.slug,
         tenantName: tenant.name,
@@ -71,8 +95,7 @@ export class AuthService {
     };
   }
 
-  async login(email: string, password: string, tenantSlug?: string) {
-    // Buscar tenant
+  async login(email: string, password: string, tenantSlug: string) {
     const tenant = await prisma.tenant.findUnique({
       where: { slug: tenantSlug }
     });
@@ -81,17 +104,17 @@ export class AuthService {
       throw new UnauthorizedException('Empresa no encontrada');
     }
 
-    // Buscar usuario en ese tenant
     const user = await prisma.user.findUnique({
       where: {
         email_tenantId: {
           email,
           tenantId: tenant.id
         }
-      }
+      },
+      include: { role: true }
     });
 
-    if (!user) {
+    if (!user || !user.isActive) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
@@ -101,7 +124,14 @@ export class AuthService {
     }
 
     const token = jwt.sign(
-      { userId: user.id, email: user.email, tenantId: tenant.id, tenantSlug: tenant.slug },
+      { 
+        userId: user.id, 
+        email: user.email, 
+        tenantId: tenant.id, 
+        tenantSlug: tenant.slug,
+        role: user.role.name,
+        permissions: user.role.permissions
+      },
       'secret-key',
       { expiresIn: '7d' }
     );
@@ -111,7 +141,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: user.role.name,
         tenantId: tenant.id,
         tenantSlug: tenant.slug,
         tenantName: tenant.name,

@@ -39,15 +39,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h1 style={styles.title}>Iniciar Sesión</h1>
-        {error && <div style={styles.error}>{error}</div>}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600">
+      <div className="bg-white rounded-2xl p-8 w-full max-w-md mx-4">
+        <h1 className="text-2xl font-bold text-center text-gray-800 mb-8">Iniciar Sesión</h1>
+        {error && <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-center">{error}</div>}
         <form onSubmit={handleSubmit}>
           <input
             type="text"
             placeholder="Empresa (ej: miempresa)"
-            style={styles.input}
+            className="w-full p-3 mb-3 border border-gray-300 rounded-lg"
             value={tenantSlug}
             onChange={(e) => setTenantSlug(e.target.value)}
             required
@@ -55,7 +55,7 @@ export default function LoginPage() {
           <input
             type="email"
             placeholder="Email"
-            style={styles.input}
+            className="w-full p-3 mb-3 border border-gray-300 rounded-lg"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -63,68 +63,26 @@ export default function LoginPage() {
           <input
             type="password"
             placeholder="Contraseña"
-            style={styles.input}
+            className="w-full p-3 mb-4 border border-gray-300 rounded-lg"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          <button type="submit" style={styles.button} disabled={loading}>
+          <button
+            type="submit"
+            className="w-full bg-indigo-500 text-white p-3 rounded-lg font-semibold hover:bg-indigo-600 transition"
+            disabled={loading}
+          >
             {loading ? 'Cargando...' : 'Ingresar'}
           </button>
         </form>
-        <p style={styles.link}>
-          ¿No tienes cuenta? <Link href="/register">Regístrate</Link>
+        <p className="text-center text-gray-600 mt-4">
+          ¿No tienes cuenta? <Link href="/register" className="text-indigo-500">Regístrate</Link>
+        </p>
+        <p className="text-center text-gray-400 text-xs mt-3">
+          Demo: empresa "miempresa" | admin@miempresa.com | 123456
         </p>
       </div>
     </div>
   )
-}
-
-const styles = {
-  container: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  },
-  card: {
-    background: 'white',
-    borderRadius: '20px',
-    padding: '40px',
-    width: '100%',
-    maxWidth: '400px',
-    margin: '20px',
-  },
-  title: { textAlign: 'center', marginBottom: '30px', color: '#333' },
-  input: {
-    width: '100%',
-    padding: '12px',
-    marginBottom: '15px',
-    border: '1px solid #ddd',
-    borderRadius: '8px',
-    fontSize: '16px',
-    boxSizing: 'border-box' as const,
-  },
-  button: {
-    width: '100%',
-    background: '#667eea',
-    color: 'white',
-    border: 'none',
-    padding: '12px',
-    borderRadius: '8px',
-    fontSize: '16px',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-    marginTop: '10px',
-  },
-  error: {
-    background: '#fee',
-    color: '#c00',
-    padding: '10px',
-    borderRadius: '8px',
-    marginBottom: '15px',
-    textAlign: 'center' as const,
-  },
-  link: { textAlign: 'center' as const, marginTop: '20px', color: '#666' },
 }
