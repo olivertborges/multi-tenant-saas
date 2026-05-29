@@ -1,18 +1,15 @@
 import { Controller, Post, Body, Res, Req, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Response, Request } from 'express';
+import { Public } from './decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(
-    @Body() body: { email: string; password: string; tenantSlug: string },
-    @Res({ passthrough: true }) response: Response,
-    @Req() request: Request
-  ) {
+  async login(@Body() body: any, @Res({ passthrough: true }) response: any, @Req() request: any) {
     const result = await this.authService.login(
       body.email,
       body.password,
@@ -23,7 +20,7 @@ export class AuthController {
     
     response.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
-      secure: false, // true en producción con HTTPS
+      secure: false,
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
@@ -31,14 +28,15 @@ export class AuthController {
     return { accessToken: result.accessToken, user: result.user };
   }
 
+  @Public()
   @Post('register')
-  async register(@Body() body: { email: string; password: string; name: string; tenantSlug: string }) {
+  async register(@Body() body: any) {
     return this.authService.register(body.email, body.password, body.name, body.tenantSlug);
   }
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  async logout(@Res({ passthrough: true }) response: Response) {
+  async logout(@Res({ passthrough: true }) response: any) {
     response.clearCookie('refreshToken');
     return { message: 'Sesión cerrada correctamente' };
   }
