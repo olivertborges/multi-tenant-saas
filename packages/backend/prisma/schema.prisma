@@ -11,9 +11,83 @@ model Tenant {
   id        String   @id @default(uuid())
   slug      String   @unique
   name      String
-  status    String   @default("ACTIVE")
+  logo      String?
+  config    Json     @default("{}")
+  status    Status   @default(ACTIVE)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  users     User[]
+  auditLogs AuditLog[]
 
   @@index([slug])
+  @@index([status])
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String
+  name      String
+  avatar    String?
+  password  String
+  tenantId  String
+  role      String   @default("EMPLOYEE")
+  lastLogin DateTime?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  sessions  Session[]
+  auditLogs AuditLog[]
+
+  @@unique([email, tenantId])
+  @@index([tenantId])
+  @@index([email])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  token        String   @unique
+  refreshToken String   @unique
+  deviceInfo   Json?
+  ipAddress    String?
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([token])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  tenantId   String
+  userId     String?
+  action     String
+  entityType String
+  entityId   String?
+  oldValues  Json?
+  newValues  Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+enum Status {
+  ACTIVE
+  SUSPENDED
+  DELETED
 }

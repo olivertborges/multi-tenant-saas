@@ -7,7 +7,8 @@ export class HealthController {
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development'
+      service: 'multi-tenant-saas-backend',
+      version: '1.0.0'
     };
   }
 }
