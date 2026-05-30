@@ -1,14 +1,40 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Package, Plus, Edit, Trash2, ShoppingCart, Heart, Sparkles } from 'lucide-react'
+import { Package, Plus, Edit, Trash2, ShoppingCart, Heart, Star, MessageCircle, X } from 'lucide-react'
+import Image from 'next/image'
+
+interface Review {
+  id: string
+  rating: number
+  comment: string
+  user: { name: string }
+  isVerified: boolean
+  createdAt: string
+}
+
+interface Product {
+  id: string
+  name: string
+  description: string
+  price: number
+  stock: number
+  category: string
+  images: string[]
+}
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState([])
+  const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [wishlist, setWishlist] = useState<Set<string>>(new Set())
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [averageRating, setAverageRating] = useState(0)
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [reviewRating, setReviewRating] = useState(0)
+  const [reviewComment, setReviewComment] = useState('')
   const [showModal, setShowModal] = useState(false)
-  const [editing, setEditing] = useState(null)
+  const [editing, setEditing] = useState<Product | null>(null)
   const [form, setForm] = useState({ name: '', description: '', price: 0, stock: 0, category: '' })
   const router = useRouter()
 
@@ -16,7 +42,7 @@ export default function ProductsPage() {
 
   const fetchProducts = async () => {
     const token = getToken()
-    const res = await fetch('http://localhost:3001/api/products', {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     const data = await res.json()
@@ -27,43 +53,36 @@ export default function ProductsPage() {
   const fetchWishlist = async () => {
     const token = getToken()
     try {
-      const res = await fetch('http://localhost:3001/api/wishlist', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/wishlist`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (res.ok) {
         const data = await res.json()
-        const wishlistSet = new Set(data.map((item: any) => item.productId))
-        setWishlist(wishlistSet)
+        setWishlist(new Set(data.map((item: any) => item.productId)))
       }
     } catch (error) {
       console.error('Error fetching wishlist:', error)
     }
   }
 
-  const toggleWishlist = async (productId: string) => {
+  const fetchReviews = async (productId: string) => {
     const token = getToken()
-    const isInWishlist = wishlist.has(productId)
-    
-    if (isInWishlist) {
-      await fetch(`http://localhost:3001/api/wishlist/remove/${productId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      setWishlist(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(productId)
-        return newSet
-      })
-    } else {
-      await fetch('http://localhost:3001/api/wishlist/add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ productId })
-      })
-      setWishlist(prev => new Set(prev).add(productId))
+    try {
+      const [reviewsRes, ratingRes] = await Promise.all([
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/reviews/product/${productId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/reviews/product/${productId}/rating`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      ])
+      if (reviewsRes.ok) setReviews(await reviewsRes.json())
+      if (ratingRes.ok) {
+        const ratingData = await ratingRes.json()
+        setAverageRating(ratingData.average || 0)
+      }
+    } catch (error) {
+      console.error('Error fetching reviews:', error)
     }
   }
 
@@ -78,7 +97,7 @@ export default function ProductsPage() {
 
   const addToCart = async (productId: string) => {
     const token = getToken()
-    await fetch('http://localhost:3001/api/cart/add', {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart/add`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -89,51 +108,155 @@ export default function ProductsPage() {
     alert('Producto agregado al carrito')
   }
 
+  const toggleWishlist = async (productId: string) => {
+    const token = getToken()
+    const isInWishlist = wishlist.has(productId)
+    
+    if (isInWishlist) {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/wishlist/remove/${productId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      setWishlist(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(productId)
+        return newSet
+      })
+    } else {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/wishlist/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ productId })
+      })
+      setWishlist(prev => new Set(prev).add(productId))
+    }
+  }
+
+  const openProductReviews = async (product: Product) => {
+    setSelectedProduct(product)
+    await fetchReviews(product.id)
+    setShowReviewModal(true)
+  }
+
+  const submitReview = async () => {
+    if (reviewRating === 0) {
+      alert('Selecciona una calificación')
+      return
+    }
+    const token = getToken()
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reviews`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        productId: selectedProduct?.id,
+        rating: reviewRating,
+        comment: reviewComment
+      })
+    })
+    if (res.ok) {
+      setReviewRating(0)
+      setReviewComment('')
+      if (selectedProduct) await fetchReviews(selectedProduct.id)
+      alert('Reseña enviada')
+    } else {
+      alert('Error al enviar reseña')
+    }
+  }
+
+  const StarRating = ({ rating, onRatingChange, readonly = false }: { rating: number; onRatingChange?: (r: number) => void; readonly?: boolean }) => (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          onClick={() => !readonly && onRatingChange?.(star)}
+          className={!readonly ? 'cursor-pointer hover:scale-110 transition' : 'cursor-default'}
+        >
+          <Star size={20} className={`${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
+        </button>
+      ))}
+    </div>
+  )
+
   if (loading) return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div></div>
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <div><h1 className="text-2xl font-bold text-gray-800">Productos</h1><p className="text-gray-500 text-sm mt-1">Gestiona tu catálogo de productos</p></div>
-        <button className="btn-primary flex items-center gap-2"><Plus className="w-4 h-4" />Nuevo Producto</button>
+        <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"><Plus className="w-4 h-4" />Nuevo Producto</button>
       </div>
 
       {products.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-100"><Package className="w-16 h-16 text-gray-300 mx-auto mb-4" /><p className="text-gray-400">No hay productos. ¡Crea tu primer producto!</p></div>
+        <div className="text-center py-16 bg-white rounded-xl shadow-sm"><Package className="w-16 h-16 text-gray-300 mx-auto mb-4" /><p className="text-gray-400">No hay productos</p></div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((p: any) => (
-            <div key={p.id} className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden border border-gray-100">
+          {products.map((p) => (
+            <div key={p.id} className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all hover:-translate-y-1 overflow-hidden border border-gray-100">
               <div className="relative h-32 bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
-                <span className="text-5xl group-hover:scale-110 transition-transform duration-300">🛍️</span>
-                <button 
-                  onClick={() => toggleWishlist(p.id)}
-                  className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 backdrop-blur-sm hover:scale-110 transition"
-                >
+                <span className="text-5xl">🛍️</span>
+                <button onClick={() => toggleWishlist(p.id)} className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80">
                   <Heart className={`w-4 h-4 ${wishlist.has(p.id) ? 'fill-rose-500 text-rose-500' : 'text-gray-400'}`} />
+                </button>
+                <button onClick={() => openProductReviews(p)} className="absolute bottom-2 right-2 p-1.5 rounded-full bg-white/80">
+                  <MessageCircle className="w-4 h-4 text-gray-500" />
                 </button>
               </div>
               <div className="p-5">
-                <h3 className="text-xl font-bold text-gray-800 group-hover:text-emerald-600 transition-colors">{p.name}</h3>
-                <p className="text-gray-500 text-sm mt-1 line-clamp-2">{p.description || 'Sin descripción'}</p>
+                <h3 className="text-xl font-bold text-gray-800">{p.name}</h3>
+                <p className="text-gray-500 text-sm mt-1">{p.description || 'Sin descripción'}</p>
                 <div className="flex justify-between items-center mt-4">
                   <div><span className="text-2xl font-bold text-emerald-600">${p.price}</span><span className="text-gray-400 text-sm ml-1">ARS</span></div>
                   <div className="text-gray-500 text-sm">Stock: {p.stock}</div>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <button onClick={() => addToCart(p.id)} className="flex-1 bg-emerald-600 text-white py-2 rounded-lg text-sm hover:bg-emerald-700 transition flex items-center justify-center gap-1">
-                    <ShoppingCart className="w-3 h-3" /> Agregar
-                  </button>
-                  <button className="px-3 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-gray-200 transition">
-                    <Edit className="w-3 h-3" />
-                  </button>
-                  <button className="px-3 py-2 bg-gray-100 text-red-500 rounded-lg text-sm hover:bg-red-50 transition">
-                    <Trash2 className="w-3 h-3" />
-                  </button>
+                  <button onClick={() => addToCart(p.id)} className="flex-1 bg-emerald-600 text-white py-2 rounded-lg text-sm hover:bg-emerald-700">Agregar</button>
+                  <button className="px-3 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm">Editar</button>
+                  <button className="px-3 py-2 bg-gray-100 text-red-500 rounded-lg text-sm">Eliminar</button>
                 </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Modal de reseñas */}
+      {showReviewModal && selectedProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-800">{selectedProduct.name}</h2>
+              <button onClick={() => setShowReviewModal(false)} className="p-1 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-6">
+              <div className="mb-6 text-center">
+                <div className="flex justify-center gap-1 mb-2"><StarRating rating={Math.round(averageRating)} readonly /></div>
+                <p className="text-gray-500">{reviews.length} reseñas</p>
+              </div>
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <h3 className="font-semibold mb-3">Escribe una reseña</h3>
+                <StarRating rating={reviewRating} onRatingChange={setReviewRating} />
+                <textarea rows={3} className="w-full mt-3 p-2 border rounded-lg" placeholder="Cuéntanos tu experiencia..." value={reviewComment} onChange={(e) => setReviewComment(e.target.value)} />
+                <button onClick={submitReview} className="mt-3 bg-emerald-600 text-white px-4 py-2 rounded-lg">Enviar reseña</button>
+              </div>
+              <div className="space-y-4">
+                {reviews.map((r) => (
+                  <div key={r.id} className="border-b pb-3">
+                    <div className="flex justify-between items-center mb-1"><span className="font-medium">{r.user.name}</span><span className="text-xs text-gray-400">{new Date(r.createdAt).toLocaleDateString()}</span></div>
+                    <StarRating rating={r.rating} readonly />
+                    <p className="text-gray-600 text-sm mt-1">{r.comment}</p>
+                    {r.isVerified && <span className="text-xs text-emerald-600 mt-1 inline-block">✓ Compra verificada</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -14,6 +14,7 @@ import { EmailModule } from './email/email.module';
 import { ReportsModule } from './reports/reports.module';
 import { AppController } from './app.controller';
 import { WishlistModule } from './wishlist/wishlist.module';
+import { ReviewsModule } from './reviews/reviews.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { WishlistModule } from './wishlist/wishlist.module';
     EmailModule,
     ReportsModule,
     WishlistModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
 })
