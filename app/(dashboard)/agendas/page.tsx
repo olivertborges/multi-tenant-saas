@@ -49,7 +49,7 @@ export default function AgendasPage() {
     if (!token) {
       router.push('/login')
     } else {
-      setUser(JSON.parse(userData))
+      setUser(userData ? JSON.parse(userData) : null)
       fetchAgendas()
       fetchServices()
       setLoading(false)
