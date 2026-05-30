@@ -12,7 +12,7 @@ import { PurchasesModule } from './purchases/purchases.module';
 import { PaymentsModule } from './payments/payments.module';
 import { EmailModule } from './email/email.module';
 import { ReportsModule } from './reports/reports.module';
-import { TestController } from './test.controller';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -30,6 +30,6 @@ import { TestController } from './test.controller';
     EmailModule,
     ReportsModule,
   ],
-  controllers: [TestController],
+  controllers: [AppController],
 })
 export class AppModule {}
