@@ -84,7 +84,7 @@ export default function AgendasPage() {
     }
   }
 
-  const updateStatus = async (id, status) => {
+  const updateStatus = async (id: string, status: string) => {
     try {
       const token = getToken()
       await fetch(`http://localhost:3001/api/agendas/${id}/status`, {
