@@ -15,6 +15,7 @@ import { ReportsModule } from './reports/reports.module';
 import { AppController } from './app.controller';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { CouponsModule } from './coupons/coupons.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ReviewsModule } from './reviews/reviews.module';
     ReportsModule,
     WishlistModule,
     ReviewsModule,
+    CouponsModule,
   ],
   controllers: [AppController],
 })
