@@ -17,7 +17,8 @@ import {
   UserCircle,
   Menu,
   X,
-  Heart
+  Heart,
+  Tag
 } from 'lucide-react'
 import AIAssistant from '@/components/ai/AIAssistant'
 import PushNotifier from '@/components/notifications/PushNotifier'
@@ -65,6 +66,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { href: '/wishlist', icon: Heart, label: 'Mi Lista', color: 'text-rose-500' },
     { href: '/agendas', icon: Calendar, label: 'Reservas', color: 'text-sky-500' },
     { href: '/purchases', icon: FileText, label: 'Mis Compras', color: 'text-emerald-600' },
+    { href: '/admin/coupons', icon: Tag, label: 'Cupones', color: 'text-amber-500' },
     { href: '/points', icon: Star, label: 'Mis Puntos', color: 'text-amber-500' },
     { href: '/services', icon: Sparkles, label: 'Servicios', color: 'text-rose-500' },
     { href: '/users', icon: Users, label: 'Usuarios', color: 'text-sky-500' },
