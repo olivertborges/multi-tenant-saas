@@ -6,13 +6,12 @@ export default function HomePage() {
   const router = useRouter()
   
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (token) {
-      router.push('/dashboard')
-    } else {
-      router.push('/login')
-    }
+    router.push('/login')
   }, [router])
   
-  return null
+  return (
+    <div className="flex items-center justify-center h-screen">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+    </div>
+  )
 }
