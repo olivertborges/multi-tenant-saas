@@ -6,38 +6,58 @@ const prisma = new PrismaClient();
 @Injectable()
 export class WishlistService {
   async getWishlist(userId: string) {
-    return prisma.wishlist.findMany({
-      where: { userId },
-      include: { product: true },
-      orderBy: { createdAt: 'desc' }
-    });
+    try {
+      const items = await prisma.wishlist.findMany({
+        where: { userId },
+        include: { product: true },
+        orderBy: { createdAt: 'desc' }
+      });
+      return items || [];
+    } catch (error) {
+      console.error('Error getting wishlist:', error);
+      return [];
+    }
   }
 
   async addToWishlist(userId: string, productId: string) {
-    const existing = await prisma.wishlist.findUnique({
-      where: { userId_productId: { userId, productId } }
-    });
+    try {
+      const existing = await prisma.wishlist.findUnique({
+        where: { userId_productId: { userId, productId } }
+      });
 
-    if (existing) {
-      return existing;
+      if (existing) {
+        return existing;
+      }
+
+      return await prisma.wishlist.create({
+        data: { userId, productId },
+        include: { product: true }
+      });
+    } catch (error) {
+      console.error('Error adding to wishlist:', error);
+      throw error;
     }
-
-    return prisma.wishlist.create({
-      data: { userId, productId },
-      include: { product: true }
-    });
   }
 
   async removeFromWishlist(userId: string, productId: string) {
-    return prisma.wishlist.delete({
-      where: { userId_productId: { userId, productId } }
-    });
+    try {
+      return await prisma.wishlist.delete({
+        where: { userId_productId: { userId, productId } }
+      });
+    } catch (error) {
+      console.error('Error removing from wishlist:', error);
+      throw error;
+    }
   }
 
   async isInWishlist(userId: string, productId: string) {
-    const item = await prisma.wishlist.findUnique({
-      where: { userId_productId: { userId, productId } }
-    });
-    return !!item;
+    try {
+      const item = await prisma.wishlist.findUnique({
+        where: { userId_productId: { userId, productId } }
+      });
+      return !!item;
+    } catch (error) {
+      return false;
+    }
   }
 }

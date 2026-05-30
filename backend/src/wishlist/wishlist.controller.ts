@@ -8,7 +8,8 @@ export class WishlistController {
   @Get()
   async getWishlist(@Req() req: any) {
     const userId = req.user?.userId;
-    return this.wishlistService.getWishlist(userId);
+    const items = await this.wishlistService.getWishlist(userId);
+    return items || [];
   }
 
   @Post('add')
@@ -26,6 +27,7 @@ export class WishlistController {
   @Get('check/:productId')
   async isInWishlist(@Param('productId') productId: string, @Req() req: any) {
     const userId = req.user?.userId;
-    return { inWishlist: await this.wishlistService.isInWishlist(userId, productId) };
+    const inWishlist = await this.wishlistService.isInWishlist(userId, productId);
+    return { inWishlist };
   }
 }
