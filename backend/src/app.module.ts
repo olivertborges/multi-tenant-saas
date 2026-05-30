@@ -12,6 +12,11 @@ import { PurchasesModule } from './purchases/purchases.module';
 import { PaymentsModule } from './payments/payments.module';
 import { EmailModule } from './email/email.module';
 import { ReportsModule } from './reports/reports.module';
+import { TestController } from './test.controller';
+
+@Module({
+  controllers: [TestController, ...otros],
+})
 
 @Module({
   imports: [
