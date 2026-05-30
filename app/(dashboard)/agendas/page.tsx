@@ -1,8 +1,6 @@
 // app/(dashboard)/agendas/page.tsx
 'use client'
 import React from 'react'
-// o
-import { FormEvent } from 'react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Calendar, Clock, User, Scissors, CheckCircle, XCircle, AlertCircle, Plus } from 'lucide-react'
