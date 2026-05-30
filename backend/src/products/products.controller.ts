@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Req } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Headers, Req } from '@nestjs/common';
 import { ProductsService } from './products.service';
 
 @Controller('products')
@@ -9,6 +9,12 @@ export class ProductsController {
   async findAll(@Req() req: any) {
     const tenantId = req.user?.tenantId;
     return this.productsService.findAll(tenantId);
+  }
+
+  @Get('related/:id')
+  async getRelated(@Param('id') id: string, @Req() req: any) {
+    const tenantId = req.user?.tenantId;
+    return this.productsService.getRelatedProducts(id, tenantId);
   }
 
   @Get(':id')

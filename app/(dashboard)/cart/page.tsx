@@ -1,12 +1,14 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ShoppingCart, Trash2, Plus, Minus, Tag, CreditCard, ArrowRight } from 'lucide-react'
 
 export default function CartPage() {
-  const [cart, setCart] = useState(null)
+  const [cart, setCart] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [pointsToUse, setPointsToUse] = useState(0)
-  const [userPoints, setUserPoints] = useState(0)
+  const [couponCode, setCouponCode] = useState('')
+  const [discount, setDiscount] = useState(0)
+  const [discountMessage, setDiscountMessage] = useState('')
   const router = useRouter()
 
   const getToken = () => localStorage.getItem('token')
@@ -14,7 +16,7 @@ export default function CartPage() {
   const fetchCart = async () => {
     try {
       const token = getToken()
-      const res = await fetch('http://localhost:3001/api/cart', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (res.ok) {
@@ -28,34 +30,16 @@ export default function CartPage() {
     }
   }
 
-  const fetchPoints = async () => {
-    try {
-      const token = getToken()
-      const res = await fetch('http://localhost:3001/api/points', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setUserPoints(data.points)
-      }
-    } catch (error) {
-      console.error('Error:', error)
-    }
-  }
-
   useEffect(() => {
     const token = getToken()
     if (!token) router.push('/login')
-    else {
-      fetchCart()
-      fetchPoints()
-    }
+    else fetchCart()
   }, [])
 
-  const updateQuantity = async (itemId, quantity) => {
+  const updateQuantity = async (itemId: string, quantity: number) => {
     if (quantity < 1) return
     const token = getToken()
-    await fetch(`http://localhost:3001/api/cart/item/${itemId}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart/item/${itemId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -66,114 +50,71 @@ export default function CartPage() {
     fetchCart()
   }
 
-  const removeItem = async (itemId) => {
+  const removeItem = async (itemId: string) => {
     const token = getToken()
-    await fetch(`http://localhost:3001/api/cart/item/${itemId}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart/item/${itemId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     })
     fetchCart()
   }
 
-  const handleCheckout = async () => {
-    try {
-      const token = getToken()
-      const res = await fetch('http://localhost:3001/api/purchases', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ pointsUsed: pointsToUse })
-      })
-
-      if (res.ok) {
-        const purchase = await res.json()
-        
-        // Crear preferencia de Mercado Pago
-        const prefRes = await fetch('http://localhost:3001/api/payments/create-preference', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ purchaseId: purchase.id })
-        })
-        
-        if (prefRes.ok) {
-          const pref = await prefRes.json()
-          window.location.href = pref.init_point
-        } else {
-          router.push('/purchases')
-        }
-      } else {
-        alert('Error al procesar la compra')
-      }
-    } catch (error) {
-      alert('Error de conexión')
+  const applyCoupon = async () => {
+    if (!couponCode) return
+    const token = getToken()
+    const subtotal = cart?.items?.reduce((sum: number, item: any) => sum + (item.product.price * item.quantity), 0) || 0
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/coupons/validate?code=${couponCode}&amount=${subtotal}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    const data = await res.json()
+    if (data.valid) {
+      setDiscount(data.discount)
+      setDiscountMessage(`¡Cupón aplicado! Descuento: $${data.discount}`)
+      setTimeout(() => setDiscountMessage(''), 3000)
+    } else {
+      alert(data.message || 'Cupón inválido')
     }
   }
 
-  if (loading) return <div className="p-8">Cargando...</div>
+  if (loading) return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div></div>
 
-  const subtotal = cart?.items?.reduce((sum, item) => sum + (item.product.price * item.quantity), 0) || 0
-  const discount = Math.min(pointsToUse, userPoints, subtotal)
+  const subtotal = cart?.items?.reduce((sum: number, item: any) => sum + (item.product.price * item.quantity), 0) || 0
   const total = subtotal - discount
 
+  if (cart?.items?.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+        <p className="text-gray-400">Tu carrito está vacío</p>
+        <button onClick={() => router.push('/products')} className="mt-4 btn-primary">Explorar productos</button>
+      </div>
+    )
+  }
+
   return (
-    <div className="p-4 sm:p-8">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-6">Mi Carrito</h1>
-
-        {cart?.items?.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-2xl">
-            <p className="text-gray-400">Tu carrito está vacío</p>
-            <button onClick={() => router.push('/products')} className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-lg">Ver productos</button>
-          </div>
-        ) : (
-          <div className="grid lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-4">
-              {cart?.items?.map((item) => (
-                <div key={item.id} className="bg-white rounded-2xl p-4 shadow-lg flex gap-4">
-                  <div className="w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-2xl">🛍️</div>
-                  <div className="flex-1">
-                    <h3 className="font-bold">{item.product.name}</h3>
-                    <p className="text-gray-500 text-sm">${item.product.price} ARS</p>
-                    <div className="flex items-center gap-3 mt-2">
-                      <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="w-8 h-8 bg-gray-100 rounded-full">-</button>
-                      <span>{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-8 h-8 bg-gray-100 rounded-full">+</button>
-                      <button onClick={() => removeItem(item.id)} className="text-red-500 text-sm ml-4">Eliminar</button>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold">${item.product.price * item.quantity}</p>
-                  </div>
+    <div>
+      <div className="mb-6"><h1 className="text-2xl font-bold text-gray-800">Mi Carrito</h1><p className="text-gray-500 text-sm mt-1">Revisa tus productos antes de comprar</p></div>
+      <div className="grid lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-4">
+          {cart?.items?.map((item: any) => (
+            <div key={item.id} className="bg-white rounded-xl p-4 shadow-md border border-gray-100">
+              <div className="flex gap-4">
+                <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center text-3xl">🛍️</div>
+                <div className="flex-1"><h3 className="font-semibold">{item.product.name}</h3><p className="text-emerald-600 font-bold">${item.product.price}</p>
+                  <div className="flex items-center gap-2 mt-2"><button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="w-7 h-7 bg-gray-100 rounded-full"><Minus className="w-3 h-3" /></button><span>{item.quantity}</span><button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-7 h-7 bg-gray-100 rounded-full"><Plus className="w-3 h-3" /></button></div>
                 </div>
-              ))}
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-lg h-fit">
-              <h2 className="text-xl font-bold mb-4">Resumen</h2>
-              <div className="space-y-2">
-                <div className="flex justify-between"><span>Subtotal</span><span>${subtotal}</span></div>
-                {pointsToUse > 0 && <div className="flex justify-between text-green-600"><span>Descuento puntos</span><span>-${discount}</span></div>}
-                <div className="border-t pt-2 mt-2"><div className="flex justify-between font-bold"><span>Total</span><span>${total}</span></div></div>
+                <div className="text-right"><p className="font-bold">${item.product.price * item.quantity}</p><button onClick={() => removeItem(item.id)} className="text-red-500 text-sm mt-2"><Trash2 className="w-3 h-3" /></button></div>
               </div>
-
-              {userPoints > 0 && (
-                <div className="mt-4">
-                  <label className="text-sm text-gray-600">Tienes {userPoints} puntos (${userPoints} de descuento)</label>
-                  <input type="number" className="w-full p-2 border rounded-lg mt-1" placeholder="Puntos a usar" max={userPoints} value={pointsToUse} onChange={(e) => setPointsToUse(parseInt(e.target.value) || 0)} />
-                </div>
-              )}
-
-              <button onClick={handleCheckout} className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold mt-6 hover:shadow-lg transition">
-                Pagar con Mercado Pago 💳
-              </button>
             </div>
-          </div>
-        )}
+          ))}
+        </div>
+        <div className="bg-white rounded-xl p-5 shadow-md border border-gray-100 h-fit">
+          <h2 className="text-lg font-semibold mb-4">Resumen</h2>
+          <div className="space-y-2 pb-4 border-b"><div className="flex justify-between"><span>Subtotal</span><span>${subtotal}</span></div>{discount > 0 && <div className="flex justify-between text-emerald-600"><span>Descuento</span><span>-${discount}</span></div>}</div>
+          <div className="flex justify-between py-4 font-bold"><span>Total</span><span className="text-emerald-600">${total}</span></div>
+          <div className="mt-4"><div className="flex gap-2 mb-4"><input type="text" placeholder="Código de cupón" className="flex-1 p-2 border rounded-lg" value={couponCode} onChange={(e) => setCouponCode(e.target.value)} /><button onClick={applyCoupon} className="px-4 py-2 bg-gray-100 rounded-lg"><Tag className="w-4 h-4" /></button></div>{discountMessage && <div className="text-emerald-600 text-sm mb-4">{discountMessage}</div>}</div>
+          <button className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2"><CreditCard className="w-4 h-4" />Proceder al pago<ArrowRight className="w-4 h-4" /></button>
+        </div>
       </div>
     </div>
   )
