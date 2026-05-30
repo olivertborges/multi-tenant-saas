@@ -20,6 +20,8 @@ import {
   Heart
 } from 'lucide-react'
 import AIAssistant from '@/components/ai/AIAssistant'
+import PushNotifier from '@/components/notifications/PushNotifier'
+
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null)
@@ -155,6 +157,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </main>
 
+      <PushNotifier />
       {/* AI Assistant */}
       <AIAssistant />
     </div>
