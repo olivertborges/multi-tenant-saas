@@ -16,7 +16,8 @@ import {
   Crown,
   UserCircle,
   Menu,
-  X
+  X,
+  Heart
 } from 'lucide-react'
 import AIAssistant from '@/components/ai/AIAssistant'
 
@@ -59,6 +60,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', color: 'text-emerald-600' },
     { href: '/products', icon: Package, label: 'Productos', color: 'text-rose-500' },
     { href: '/cart', icon: ShoppingCart, label: 'Carrito', color: 'text-amber-500' },
+    { href: '/wishlist', icon: Heart, label: 'Mi Lista', color: 'text-rose-500' },
     { href: '/agendas', icon: Calendar, label: 'Reservas', color: 'text-sky-500' },
     { href: '/purchases', icon: FileText, label: 'Mis Compras', color: 'text-emerald-600' },
     { href: '/points', icon: Star, label: 'Mis Puntos', color: 'text-amber-500' },

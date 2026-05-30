@@ -17,28 +17,32 @@ model Tenant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users    User[]
-  roles    Role[]
-  services Service[]
-  products Product[]
-  agendas  Agenda[]
+  users     User[]
+  roles     Role[]
+  services  Service[]
+  products  Product[]
+  agendas   Agenda[]
   purchases Purchase[]
-  carts    Cart[]
+  carts     Cart[]
+  coupons   Coupon[]
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String
-  name      String
-  password  String
-  roleId    String
-  tenantId  String
-  points    Int      @default(0)
-  avatar    String?
-  phone     String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(uuid())
+  email          String
+  name           String
+  password       String
+  roleId         String
+  tenantId       String
+  points         Int      @default(0)
+  avatar         String?
+  phone          String?
+  twoFactorSecret String?
+  twoFactorEnabled Boolean @default(false)
+  membershipLevel String  @default("BRONZE")
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   tenant      Tenant      @relation(fields: [tenantId], references: [id])
   role        Role        @relation(fields: [roleId], references: [id])
@@ -46,6 +50,8 @@ model User {
   purchases   Purchase[]
   pointsLog   PointsLog[]
   cart        Cart?
+  couponUsages CouponUsage[]
+  wishlist    Wishlist[]   // ← Agregado
 
   @@unique([email, tenantId])
   @@index([tenantId])
@@ -101,6 +107,7 @@ model Product {
   tenant         Tenant         @relation(fields: [tenantId], references: [id])
   cartItems      CartItem[]
   purchaseItems  PurchaseItem[]
+  wishlist       Wishlist[]     // ← Agregado
 
   @@index([tenantId])
 }
@@ -163,12 +170,15 @@ model Purchase {
   paymentMethod String?
   pointsUsed  Int      @default(0)
   pointsEarned Int     @default(0)
+  couponCode  String?
+  discountAmount Float @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   user   User          @relation(fields: [userId], references: [id])
   tenant Tenant        @relation(fields: [tenantId], references: [id])
   items  PurchaseItem[]
+  couponUsages CouponUsage[]
 
   @@index([userId])
   @@index([tenantId])
@@ -196,5 +206,56 @@ model PointsLog {
 
   user User @relation(fields: [userId], references: [id])
 
+  @@index([userId])
+}
+
+model Coupon {
+  id           String   @id @default(uuid())
+  code         String   @unique
+  description  String?
+  discountType String
+  discountValue Float
+  minPurchase  Float?
+  maxDiscount  Float?
+  usageLimit   Int?
+  usedCount    Int      @default(0)
+  validFrom    DateTime
+  validUntil   DateTime
+  isActive     Boolean  @default(true)
+  tenantId     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant Tenant        @relation(fields: [tenantId], references: [id])
+  usages CouponUsage[]
+
+  @@index([code])
+  @@index([tenantId])
+}
+
+model CouponUsage {
+  id         String   @id @default(uuid())
+  couponId   String
+  userId     String
+  purchaseId String?
+  usedAt     DateTime @default(now())
+
+  coupon   Coupon   @relation(fields: [couponId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+  purchase Purchase? @relation(fields: [purchaseId], references: [id])
+
+  @@unique([couponId, userId])
+}
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId])
   @@index([userId])
 }

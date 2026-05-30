@@ -13,6 +13,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { EmailModule } from './email/email.module';
 import { ReportsModule } from './reports/reports.module';
 import { AppController } from './app.controller';
+import { WishlistModule } from './wishlist/wishlist.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AppController } from './app.controller';
     PaymentsModule,
     EmailModule,
     ReportsModule,
+    WishlistModule,
   ],
   controllers: [AppController],
 })
