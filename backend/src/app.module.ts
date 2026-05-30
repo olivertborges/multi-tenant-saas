@@ -15,10 +15,6 @@ import { ReportsModule } from './reports/reports.module';
 import { TestController } from './test.controller';
 
 @Module({
-  controllers: [TestController, ...otros],
-})
-
-@Module({
   imports: [
     AuthModule,
     UsersModule,
@@ -34,5 +30,6 @@ import { TestController } from './test.controller';
     EmailModule,
     ReportsModule,
   ],
+  controllers: [TestController],
 })
 export class AppModule {}
