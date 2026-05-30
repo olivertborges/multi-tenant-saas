@@ -58,7 +58,7 @@ export default function AgendasPage() {
     }
   }, [])
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
       const token = getToken()
