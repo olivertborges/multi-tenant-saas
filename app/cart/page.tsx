@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 export default function CartPage() {
   const [cart, setCart] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [checkout, setCheckout] = useState(false)
   const [pointsToUse, setPointsToUse] = useState(0)
   const [userPoints, setUserPoints] = useState(0)
   const router = useRouter()
@@ -89,7 +88,24 @@ export default function CartPage() {
       })
 
       if (res.ok) {
-        router.push('/purchases')
+        const purchase = await res.json()
+        
+        // Crear preferencia de Mercado Pago
+        const prefRes = await fetch('http://localhost:3001/api/payments/create-preference', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ purchaseId: purchase.id })
+        })
+        
+        if (prefRes.ok) {
+          const pref = await prefRes.json()
+          window.location.href = pref.init_point
+        } else {
+          router.push('/purchases')
+        }
       } else {
         alert('Error al procesar la compra')
       }
@@ -152,8 +168,8 @@ export default function CartPage() {
                 </div>
               )}
 
-              <button onClick={handleCheckout} className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold mt-6 hover:bg-indigo-700">
-                Finalizar Compra
+              <button onClick={handleCheckout} className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold mt-6 hover:shadow-lg transition">
+                Pagar con Mercado Pago 💳
               </button>
             </div>
           </div>
