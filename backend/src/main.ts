@@ -14,10 +14,14 @@ interface JwtPayload {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
-  app.enableCors({
-    origin: 'http://localhost:3000',
-    credentials: true,
-  });
+app.enableCors({
+  origin: [
+    'http://localhost:3000',
+    'https://multi-tenant-saas.netlify.app',
+    'https://multi-tenant-saas2.netlify.app'
+  ],
+  credentials: true,
+});
   
   // Middleware para extraer tenant del token
   app.use((req: any, res: any, next: any) => {
