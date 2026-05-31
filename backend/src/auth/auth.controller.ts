@@ -33,11 +33,7 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req: any, @Res() res: Response) {
     const { email, name, picture } = req.user;
-    
-    // Buscar o crear usuario con Google
     const result = await this.authService.loginWithGoogle(email, name, picture);
-    
-    // Redirigir al frontend con el token
     res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${result.accessToken}`);
   }
 

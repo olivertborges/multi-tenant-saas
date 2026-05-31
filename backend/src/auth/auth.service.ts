@@ -77,7 +77,7 @@ export class AuthService {
         role: user.role.name,
         permissions: user.role.permissions
       },
-      'secret-key',
+      process.env.JWT_SECRET || 'secret-key',
       { expiresIn: '7d' }
     );
 
@@ -132,7 +132,7 @@ export class AuthService {
         role: user.role.name,
         permissions: user.role.permissions
       },
-      'secret-key',
+      process.env.JWT_SECRET || 'secret-key',
       { expiresIn: '7d' }
     );
 
@@ -149,40 +149,52 @@ export class AuthService {
       token
     };
   }
-}
+
   async loginWithGoogle(email: string, name: string, picture: string) {
     // Buscar usuario por email
-    let user = await this.prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { email },
       include: { role: true, tenant: true }
     });
 
     if (!user) {
-      // Crear usuario nuevo con Google
-      const tenant = await this.prisma.tenant.findFirst();
-      const defaultRole = await this.prisma.role.findFirst({
+      // Buscar un tenant por defecto
+      const tenant = await prisma.tenant.findFirst();
+      const defaultRole = await prisma.role.findFirst({
         where: { name: 'VIEWER' }
       });
 
-      user = await this.prisma.user.create({
+      if (!tenant || !defaultRole) {
+        throw new BadRequestException('Configuración del sistema incompleta');
+      }
+
+      const hashedPassword = await argon2.hash(Math.random().toString(36));
+
+      user = await prisma.user.create({
         data: {
           email,
           name,
           avatar: picture,
-          password: await hash(Math.random().toString(36)),
-          tenantId: tenant?.id,
-          roleId: defaultRole?.id,
+          password: hashedPassword,
+          tenantId: tenant.id,
+          roleId: defaultRole.id,
         },
         include: { role: true, tenant: true }
       });
     }
 
-    // Generar token
+    // Generar token JWT
     const token = jwt.sign(
-      { userId: user.id, email: user.email, tenantId: user.tenantId, role: user.role.name },
-      process.env.JWT_SECRET,
+      { 
+        userId: user.id, 
+        email: user.email, 
+        tenantId: user.tenantId, 
+        role: user.role.name 
+      },
+      process.env.JWT_SECRET || 'secret-key',
       { expiresIn: '7d' }
     );
 
     return { accessToken: token, user };
   }
+}
