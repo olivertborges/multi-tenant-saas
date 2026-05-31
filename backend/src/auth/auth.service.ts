@@ -150,3 +150,39 @@ export class AuthService {
     };
   }
 }
+  async loginWithGoogle(email: string, name: string, picture: string) {
+    // Buscar usuario por email
+    let user = await this.prisma.user.findUnique({
+      where: { email },
+      include: { role: true, tenant: true }
+    });
+
+    if (!user) {
+      // Crear usuario nuevo con Google
+      const tenant = await this.prisma.tenant.findFirst();
+      const defaultRole = await this.prisma.role.findFirst({
+        where: { name: 'VIEWER' }
+      });
+
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          name,
+          avatar: picture,
+          password: await hash(Math.random().toString(36)),
+          tenantId: tenant?.id,
+          roleId: defaultRole?.id,
+        },
+        include: { role: true, tenant: true }
+      });
+    }
+
+    // Generar token
+    const token = jwt.sign(
+      { userId: user.id, email: user.email, tenantId: user.tenantId, role: user.role.name },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    return { accessToken: token, user };
+  }

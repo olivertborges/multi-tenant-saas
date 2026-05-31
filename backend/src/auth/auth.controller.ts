@@ -1,76 +1,50 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Req, Res, HttpCode, HttpStatus } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
+import { Public } from './decorators/public.decorator';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('register')
-  async register(@Body() body: { 
-    email: string; 
-    password: string; 
-    name: string;
-    tenantSlug: string;
-    tenantName?: string;
-  }) {
-    return this.authService.register(
-      body.email, 
-      body.password, 
-      body.name, 
-      body.tenantSlug,
-      body.tenantName
-    );
-  }
-
+  @Public()
   @Post('login')
-  async login(@Body() body: { email: string; password: string; tenantSlug: string }) {
+  @HttpCode(HttpStatus.OK)
+  async login(@Body() body: any, @Res({ passthrough: true }) res: Response) {
     return this.authService.login(body.email, body.password, body.tenantSlug);
   }
-}
-  @Get('google')
-  @UseGuards(AuthGuard('google'))
-  async googleAuth() {}
 
-  @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req, @Res() res) {
-    const { user } = req;
-    // Aquí creas o actualizas el usuario en tu base de datos
-    // Generas JWT y rediriges al frontend con el token
-    const token = this.authService.generateSocialToken(user);
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+  @Public()
+  @Post('register')
+  async register(@Body() body: any) {
+    return this.authService.register(body.email, body.password, body.name, body.tenantSlug, body.tenantName);
   }
+
+  @Public()
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  async googleAuth() {}
+  async googleAuth() {
+    // Redirige a Google
+  }
 
+  @Public()
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req, @Res() res) {
+  async googleAuthRedirect(@Req() req: any, @Res() res: Response) {
     const { email, name, picture } = req.user;
     
-    // Buscar o crear usuario
-    let user = await this.prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      // Crear usuario con Google
-      user = await this.prisma.user.create({
-        data: {
-          email,
-          name,
-          avatar: picture,
-          password: await this.authService.hashPassword(Math.random().toString(36)),
-          tenantId: 'default-tenant-id', // Necesitas manejar esto
-          roleId: 'default-role-id',
-        },
-      });
-    }
-
-    // Generar JWT
-    const token = await this.authService.generateToken(user.id, user.tenantId);
+    // Buscar o crear usuario con Google
+    const result = await this.authService.loginWithGoogle(email, name, picture);
     
     // Redirigir al frontend con el token
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${result.accessToken}`);
   }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('refreshToken');
+    return { message: 'Sesión cerrada correctamente' };
+  }
+}
