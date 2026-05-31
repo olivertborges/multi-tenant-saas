@@ -16,6 +16,8 @@ import { AppController } from './app.controller';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { CouponsModule } from './coupons/coupons.module';
+import { GDPRModule } from './gdpr/gdpr.module';
+import { AIModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { CouponsModule } from './coupons/coupons.module';
     WishlistModule,
     ReviewsModule,
     CouponsModule,
+    GDPRModule,
+    AIModule,
   ],
   controllers: [AppController],
 })

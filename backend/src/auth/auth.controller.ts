@@ -27,3 +27,16 @@ export class AuthController {
     return this.authService.login(body.email, body.password, body.tenantSlug);
   }
 }
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {}
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req, @Res() res) {
+    const { user } = req;
+    // Aquí creas o actualizas el usuario en tu base de datos
+    // Generas JWT y rediriges al frontend con el token
+    const token = this.authService.generateSocialToken(user);
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+  }

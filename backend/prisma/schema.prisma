@@ -279,3 +279,18 @@ model Review {
   @@index([productId])
   @@index([rating])
 }
+
+model AIConversation {
+  id        String   @id @default(uuid())
+  userId    String
+  tenantId  String
+  message   String
+  response  String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([userId])
+  @@index([tenantId])
+}
