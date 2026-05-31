@@ -22,7 +22,6 @@ export class GDPRService {
       throw new Error('Usuario no encontrado');
     }
 
-    // Estructurar los datos para exportar
     const userData = {
       personal: {
         id: user.id,
@@ -53,7 +52,6 @@ export class GDPRService {
   }
 
   async deleteUserData(userId: string) {
-    // Verificar que el usuario existe
     const user = await prisma.user.findUnique({
       where: { id: userId },
     });
@@ -62,7 +60,6 @@ export class GDPRService {
       throw new Error('Usuario no encontrado');
     }
 
-    // Anonimizar datos personales (GDPR: derecho al olvido)
     await prisma.user.update({
       where: { id: userId },
       data: {
@@ -75,7 +72,6 @@ export class GDPRService {
       },
     });
 
-    // Opcional: eliminar datos sensibles de otras tablas
     await prisma.session.deleteMany({
       where: { userId },
     });
@@ -93,10 +89,11 @@ export class GDPRService {
       },
     });
     
+    const preferences = user?.preferences as any || {};
+    
     return {
-      const preferences = user.preferences as any;
-      marketingEmails: preferences?.marketingEmails || false,
-      dataProcessing: true, // Por defecto aceptado
+      marketingEmails: preferences.marketingEmails || false,
+      dataProcessing: true,
       lastUpdated: new Date(),
     };
   }
@@ -113,6 +110,8 @@ export class GDPRService {
       },
     });
     
-    return { message: 'Preferencias actualizadas', consent: user.preferences };
+    const preferences = user.preferences as any;
+    
+    return { message: 'Preferencias actualizadas', consent: preferences };
   }
 }
