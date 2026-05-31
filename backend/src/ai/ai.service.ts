@@ -1,46 +1,41 @@
 import { Injectable } from '@nestjs/common';
-import OpenAI from 'openai';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 @Injectable()
 export class AIService {
-  private openai: OpenAI;
-
-  constructor() {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-  }
-
   async chat(message: string, userId: string, tenantId: string) {
-    // Obtener contexto del usuario y tenant
+    const lowerMessage = message.toLowerCase();
+    
     const [user, tenant, products] = await Promise.all([
       prisma.user.findUnique({ where: { id: userId } }),
       prisma.tenant.findUnique({ where: { id: tenantId } }),
-      prisma.product.findMany({ where: { tenantId, isActive: true }, take: 10 }),
+      prisma.product.findMany({ where: { tenantId, isActive: true }, take: 5 })
     ]);
 
-    const systemPrompt = `Eres un asistente de ventas para ${tenant.name}. 
-    Ayuda a los clientes con sus dudas sobre productos.
-    Productos disponibles: ${products.map(p => p.name).join(', ')}.
-    El usuario se llama ${user?.name}. Sé amable y útil.`;
+    let response = '';
 
-    const completion = await this.openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: message }
-      ],
-      temperature: 0.7,
-      max_tokens: 500,
-    });
+    if (lowerMessage.includes('hola') || lowerMessage.includes('buenos días')) {
+      response = `¡Hola ${user?.name}! Bienvenido a ${tenant?.name}. ¿En qué puedo ayudarte hoy?`;
+    } else if (lowerMessage.includes('producto') || lowerMessage.includes('precio')) {
+      if (products.length > 0) {
+        response = `Tenemos ${products.length} productos disponibles. Por ejemplo: ${products[0].name} por $${products[0].price}. ¿Te gustaría ver más detalles?`;
+      } else {
+        response = 'Pronto tendremos productos disponibles. ¡Te avisaremos!';
+      }
+    } else if (lowerMessage.includes('compra') || lowerMessage.includes('pedido')) {
+      response = 'Puedes revisar tus compras en la sección "Mis Compras". ¿Necesitas ayuda con algo específico?';
+    } else if (lowerMessage.includes('punto') || lowerMessage.includes('puntos')) {
+      response = `Actualmente tienes ${user?.points || 0} puntos. ¡Sigue comprando para acumular más beneficios!`;
+    } else if (lowerMessage.includes('gracias')) {
+      response = '¡De nada! Estoy aquí para ayudarte. ¿Algo más en lo que pueda asistirte?';
+    } else {
+      response = `Gracias por tu mensaje. En ${tenant?.name}, queremos ayudarte. ¿Puedes darme más detalles sobre tu consulta?`;
+    }
 
-    const response = completion.choices[0].message.content;
-    
     // Guardar en historial
-    await prisma.aiConversation.create({
+    const aIConversation = await prisma.aIConversation.create({
       data: {
         userId,
         tenantId,
@@ -61,14 +56,21 @@ export class AIService {
     
     const categories = purchases.flatMap(p => p.items.map(i => i.product.category));
     const topCategory = categories.sort((a,b) => 
-      categories.filter(v => v===a).length - categories.filter(v => v===b).length
+      categories.filter(v => v === a).length - categories.filter(v => v === b).length
     ).pop();
 
-    const recommendations = await prisma.product.findMany({
-      where: { category: topCategory, isActive: true, tenantId },
+    if (topCategory) {
+      const recommendations = await prisma.product.findMany({
+        where: { category: topCategory, isActive: true, tenantId },
+        take: 5,
+      });
+      return recommendations;
+    }
+    
+    return prisma.product.findMany({
+      where: { tenantId, isActive: true },
+      orderBy: { price: 'asc' },
       take: 5,
     });
-    
-    return recommendations;
   }
 }

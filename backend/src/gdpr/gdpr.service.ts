@@ -94,7 +94,8 @@ export class GDPRService {
     });
     
     return {
-      marketingEmails: user?.preferences?.marketingEmails || false,
+      const preferences = user.preferences as any;
+      marketingEmails: preferences?.marketingEmails || false,
       dataProcessing: true, // Por defecto aceptado
       lastUpdated: new Date(),
     };
