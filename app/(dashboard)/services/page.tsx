@@ -17,7 +17,7 @@ export default function ServicesPage() {
     try {
       const token = getToken()
       const user = getUser()
-      const res = await fetch('http://localhost:3001/api/services', {
+      const res = await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/services', {
         headers: { 'Authorization': `Bearer ${token}`, 'x-tenant-id': user.tenantId }
       })
       if (res.ok) {
@@ -41,7 +41,7 @@ export default function ServicesPage() {
     try {
       const token = getToken()
       const user = getUser()
-      const url = editing ? `http://localhost:3001/api/services/${editing.id}` : 'http://localhost:3001/api/services'
+      const url = editing ? `${process.env.NEXT_PUBLIC_API_URL}/api/services/${editing.id}` : '${process.env.NEXT_PUBLIC_API_URL}/api/services'
       const method = editing ? 'PUT' : 'POST'
 
       const res = await fetch(url, {
@@ -73,7 +73,7 @@ export default function ServicesPage() {
     try {
       const token = getToken()
       const user = getUser()
-      await fetch(`http://localhost:3001/api/services/${id}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/services/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}`, 'x-tenant-id': user.tenantId }
       })

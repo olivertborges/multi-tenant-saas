@@ -14,8 +14,8 @@ export default function PointsPage() {
     try {
       const token = getToken()
       const [pointsRes, historyRes] = await Promise.all([
-        fetch('http://localhost:3001/api/points', { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch('http://localhost:3001/api/points/history', { headers: { 'Authorization': `Bearer ${token}` } })
+        fetch('${process.env.NEXT_PUBLIC_API_URL}/api/points', { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch('${process.env.NEXT_PUBLIC_API_URL}/api/points/history', { headers: { 'Authorization': `Bearer ${token}` } })
       ])
       if (pointsRes.ok) setPoints((await pointsRes.json()).points)
       if (historyRes.ok) setHistory(await historyRes.json())

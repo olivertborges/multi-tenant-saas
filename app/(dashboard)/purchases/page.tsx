@@ -12,7 +12,7 @@ export default function PurchasesPage() {
   const fetchPurchases = async () => {
     try {
       const token = getToken()
-      const res = await fetch('http://localhost:3001/api/purchases/my', {
+      const res = await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/purchases/my', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (res.ok) {

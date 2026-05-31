@@ -19,7 +19,7 @@ export default function AgendasPage() {
   const fetchAgendas = async () => {
     try {
       const token = getToken()
-      const res = await fetch('http://localhost:3001/api/agendas', {
+      const res = await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/agendas', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (res.ok) {
@@ -34,7 +34,7 @@ export default function AgendasPage() {
   const fetchServices = async () => {
     try {
       const token = getToken()
-      const res = await fetch('http://localhost:3001/api/services', {
+      const res = await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/services', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (res.ok) {
@@ -63,7 +63,7 @@ export default function AgendasPage() {
     e.preventDefault()
     try {
       const token = getToken()
-      const res = await fetch('http://localhost:3001/api/agendas', {
+      const res = await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/agendas', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ export default function AgendasPage() {
   const updateStatus = async (id: string, status: string) => {
     try {
       const token = getToken()
-      await fetch(`http://localhost:3001/api/agendas/${id}/status`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/agendas/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

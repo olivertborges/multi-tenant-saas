@@ -13,7 +13,7 @@ export default function WishlistPage() {
   const fetchWishlist = async () => {
     try {
       const token = getToken()
-      const res = await fetch('http://localhost:3001/api/wishlist', {
+      const res = await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/wishlist', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (res.ok) {
@@ -35,7 +35,7 @@ export default function WishlistPage() {
 
   const removeFromWishlist = async (productId: string) => {
     const token = getToken()
-    await fetch(`http://localhost:3001/api/wishlist/remove/${productId}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/wishlist/remove/${productId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -44,7 +44,7 @@ export default function WishlistPage() {
 
   const addToCart = async (productId: string) => {
     const token = getToken()
-    await fetch('http://localhost:3001/api/cart/add', {
+    await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/cart/add', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

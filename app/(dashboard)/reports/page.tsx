@@ -15,7 +15,7 @@ export default function ReportsPage() {
       return
     }
     const token = getToken()
-    window.open(`http://localhost:3001/api/reports/sales/pdf?start=${startDate}&end=${endDate}&token=${token}`, '_blank')
+    window.open(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/sales/pdf?start=${startDate}&end=${endDate}&token=${token}`, '_blank')
   }
 
   const downloadExcel = async () => {
@@ -24,7 +24,7 @@ export default function ReportsPage() {
       return
     }
     const token = getToken()
-    window.open(`http://localhost:3001/api/reports/sales/excel?start=${startDate}&end=${endDate}&token=${token}`, '_blank')
+    window.open(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/sales/excel?start=${startDate}&end=${endDate}&token=${token}`, '_blank')
   }
 
   return (
