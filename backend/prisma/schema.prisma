@@ -1,3 +1,4 @@
+cat > prisma/schema.prisma << 'EOF'
 generator client {
   provider = "prisma-client-js"
 }
@@ -17,14 +18,15 @@ model Tenant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users     User[]
-  roles     Role[]
-  services  Service[]
-  products  Product[]
-  agendas   Agenda[]
-  purchases Purchase[]
-  carts     Cart[]
-  coupons   Coupon[]
+  users          User[]
+  roles          Role[]
+  services       Service[]
+  products       Product[]
+  agendas        Agenda[]
+  purchases      Purchase[]
+  carts          Cart[]
+  coupons        Coupon[]
+  aiConversations AIConversation[]
 }
 
 model User {
@@ -43,6 +45,7 @@ model User {
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
 
   tenant      Tenant      @relation(fields: [tenantId], references: [id])
   role        Role        @relation(fields: [roleId], references: [id])
@@ -52,7 +55,8 @@ model User {
   cart        Cart?
   couponUsages CouponUsage[]
   wishlist    Wishlist[]
-  reviews     Review[]     // ← Agregado
+  reviews     Review[]
+  aiConversations AIConversation[]
 
   @@unique([email, tenantId])
   @@index([tenantId])
@@ -109,7 +113,7 @@ model Product {
   cartItems      CartItem[]
   purchaseItems  PurchaseItem[]
   wishlist       Wishlist[]
-  reviews        Review[]       // ← Agregado
+  reviews        Review[]
 
   @@index([tenantId])
 }
@@ -294,3 +298,4 @@ model AIConversation {
   @@index([userId])
   @@index([tenantId])
 }
+EOF
