@@ -17,29 +17,35 @@ model Tenant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users     User[]
-  roles     Role[]
-  services  Service[]
-  products  Product[]
-  agendas   Agenda[]
-  purchases Purchase[]
-  carts     Cart[]
-  coupons   Coupon[]
+  users          User[]
+  roles          Role[]
+  services       Service[]
+  products       Product[]
+  agendas        Agenda[]
+  purchases      Purchase[]
+  carts          Cart[]
+  coupons        Coupon[]
+  aiConversations AIConversation[]
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String
-  name      String
-  password  String
-  roleId    String
-  tenantId  String
-  points    Int      @default(0)
-  avatar    String?
-  phone     String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String    @id @default(uuid())
+  email           String
+  name            String
+  password        String
+  roleId          String
+  tenantId        String
+  points          Int       @default(0)
+  avatar          String?
+  phone           String?
+  twoFactorSecret String?
+  twoFactorEnabled Boolean  @default(false)
+  membershipLevel String?   @default("BRONZE")
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+  preferences     Json?     @default("{}")
 
   tenant      Tenant      @relation(fields: [tenantId], references: [id])
   role        Role        @relation(fields: [roleId], references: [id])
@@ -50,9 +56,23 @@ model User {
   couponUsages CouponUsage[]
   wishlist    Wishlist[]
   reviews     Review[]
+  sessions    Session[]
+  aiConversations AIConversation[]
 
   @@unique([email, tenantId])
   @@index([tenantId])
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
 
 model Role {
@@ -275,4 +295,19 @@ model Review {
   @@unique([userId, productId])
   @@index([productId])
   @@index([rating])
+}
+
+model AIConversation {
+  id        String   @id @default(uuid())
+  userId    String
+  tenantId  String
+  message   String
+  response  String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([userId])
+  @@index([tenantId])
 }

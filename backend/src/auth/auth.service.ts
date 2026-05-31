@@ -152,7 +152,7 @@ export class AuthService {
 
   async loginWithGoogle(email: string, name: string, picture: string) {
     // Buscar usuario por email
-    let user = await prisma.user.findUnique({
+    let user = await prisma.user.findFirst({
       where: { email },
       include: { role: true, tenant: true }
     });
@@ -184,13 +184,9 @@ export class AuthService {
     }
 
     // Generar token JWT
-    const token = jwt.sign(
-      { 
-        userId: user.id, 
-        email: user.email, 
-        tenantId: user.tenantId, 
-        role: user.role.name 
-      },
+  const role = await prisma.role.findUnique({ where: { id: user.roleId } });
+  const token = jwt.sign(
+  { userId: user.id, email: user.email, tenantId: user.tenantId, role: role?.name || 'USER' },
       process.env.JWT_SECRET || 'secret-key',
       { expiresIn: '7d' }
     );
